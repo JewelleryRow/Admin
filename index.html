@@ -1,0 +1,535 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Jewellery Row Admin</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f6f8;color:#181818;-webkit-text-size-adjust:100%}
+
+/* ===== SIDEBAR / NAV ===== */
+.side{position:fixed;width:230px;top:0;bottom:0;left:0;background:#171717;color:#fff;padding:22px;display:flex;flex-direction:column;z-index:50}
+.logo{font-size:24px;font-weight:800;margin-bottom:25px}
+.logo span{color:#d8ad58}
+.nav{display:flex;flex-direction:column}
+.nav button{width:100%;display:flex;align-items:center;gap:10px;padding:13px;border:0;background:transparent;color:#ccc;text-align:left;border-radius:8px;margin:4px 0;cursor:pointer;font-size:15px;touch-action:manipulation}
+.nav button .ic{font-size:18px;line-height:1}
+.nav button .lb{white-space:nowrap}
+.nav button.active,.nav button:hover{background:#303030;color:#fff}
+.nav button:active{background:#3a3a3a}
+
+.main{margin-left:230px;padding:28px;padding-bottom:40px}
+.page{display:none}
+.page.active{display:block}
+
+/* ===== DASHBOARD STATS ===== */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.card,.box{background:#fff;border-radius:14px;padding:20px;box-shadow:0 3px 14px #0000000c}
+.card p{color:#777;margin:0;font-size:13px}
+.card h2{font-size:28px;margin:12px 0 0}
+
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px;flex-wrap:wrap}
+.top h1{margin:0;font-size:22px}
+
+/* ===== BUTTONS ===== */
+.btn{border:0;border-radius:10px;padding:14px 18px;background:#171717;color:#fff;font-weight:bold;cursor:pointer;font-size:15px;min-height:48px;touch-action:manipulation}
+.btn:active{opacity:.8}
+.secondary-btn{background:#eee;color:#333}
+
+/* ===== PHOTO DROP ZONE ===== */
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed #bbb;border-radius:12px;padding:35px 15px;text-align:center;background:#fafafa;cursor:pointer;touch-action:manipulation}
+.drop:active{background:#f0f0f0;border-color:#171717}
+.drop.drag{border-color:#171717;background:#f0f0f0}
+.drop .drop-icon{font-size:30px}
+.drop b{font-size:15px}
+.preview{max-width:140px;max-height:140px;border-radius:10px;margin-top:12px}
+
+.upload-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.upload-actions .btn{flex:1;text-align:center;min-width:150px}
+
+/* ===== FORM FIELDS ===== */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{font-size:13px;color:#555;font-weight:bold}
+.field input,.field select{padding:13px;border:1px solid #ddd;border-radius:8px;font-size:16px;width:100%;background:#fff}
+select{padding:13px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+input[type=text],input[type=number]{font-size:16px}
+
+/* ===== TABLES (horizontally scrollable so nothing gets squished) ===== */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.box:has(table){overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;margin-top:10px;min-width:640px}
+th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;font-size:14px;white-space:nowrap}
+th{color:#777;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+.pic{width:55px;height:55px;object-fit:cover;border-radius:8px}
+.scroll-hint{display:none;font-size:12px;color:#999;margin:-8px 0 8px;text-align:right}
+
+/* ===== SETTINGS ===== */
+.settings{display:grid;gap:15px}
+.setting{display:flex;justify-content:space-between;gap:15px;align-items:center;padding:16px;border-bottom:1px solid #eee;flex-wrap:wrap}
+.setting > input{font-size:16px}
+.toggle{width:54px;height:30px;flex:none;border-radius:20px;border:0;background:#bbb;position:relative;cursor:pointer;touch-action:manipulation}
+.toggle:after{content:'';position:absolute;width:24px;height:24px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .15s}
+.toggle.on{background:#171717}
+.toggle.on:after{left:27px}
+.small{color:#777;font-size:13px}
+.status{padding:8px;border-radius:7px;border:1px solid #ddd;background:#fff;font-size:14px}
+.danger{background:#ffe9e9;color:#b22;border:0;border-radius:7px;padding:9px 12px;cursor:pointer;font-size:13px;min-height:40px}
+
+/* ===== PHOTO THUMBNAILS (inventory form preview) ===== */
+.photo-thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.photo-thumb{position:relative;width:90px;height:90px}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;border-radius:10px;border:1px solid #ddd}
+.photo-thumb button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:#e33;color:#fff;font-size:14px;line-height:24px;text-align:center;padding:0;cursor:pointer}
+.pic-multi{display:flex;gap:3px}
+.pic-multi img{width:40px;height:40px;object-fit:cover;border-radius:6px}
+.edit-btn{background:#eef2ff;color:#2b4fd6;border:0;border-radius:7px;padding:9px 12px;cursor:pointer;margin-right:6px;font-size:13px;min-height:40px}
+
+/* ===== JR CARDS — har customer/order apne alag, saaf box mein.
+   Dark header = us record ki identity (naam/order id). Neeche
+   colored blocks mein cart/items aur value/status — kabhi confusion
+   nahi hoga ki kaunsa data kiska hai. ===== */
+
+.jr-cards{display:flex;flex-direction:column;gap:16px}
+
+.jr-card{background:#fff;border:2px solid #171717;border-radius:14px;overflow:hidden;box-shadow:0 3px 12px #0000000d}
+
+.jr-card-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;background:#171717;color:#fff;padding:14px 18px}
+.jr-card-header .jrh-title{font-size:16px;font-weight:800}
+.jr-card-header .jrh-title span{color:#d8ad58}
+.jr-card-header .jrh-sub{font-size:12px;color:#cfcfcf;margin-top:2px}
+.jr-card-header .jrh-right{text-align:right;font-size:12px;color:#cfcfcf}
+.jr-card-header .jrh-amount{font-size:16px;font-weight:800;color:#fff}
+
+.jr-card-address{padding:10px 18px;font-size:13px;color:#555;border-bottom:1px solid #eee;background:#fafafa}
+
+.jr-card-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:700px){.jr-card-body{grid-template-columns:1fr}}
+
+.jr-block{padding:16px 18px}
+.jr-block.jr-cart{background:#fff8ec;border-right:2px solid #171717}
+.jr-block.jr-value{background:#f2f7ff}
+@media(max-width:700px){.jr-block.jr-cart{border-right:0;border-bottom:2px solid #171717}}
+
+.jr-block-title{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.jr-cart .jr-block-title{color:#b08a2e}
+.jr-value .jr-block-title{color:#2952cc}
+
+.jr-item-box{display:flex;justify-content:space-between;gap:10px;background:#fff;border:1px solid #eee;border-radius:6px;padding:6px 10px;font-size:12px;margin-bottom:6px}
+.jr-item-box:last-child{margin-bottom:0}
+.jr-item-box{align-items:center}
+.jr-item-img{width:46px;height:46px;border-radius:8px;object-fit:cover;flex:none;background:#f1f3f5;cursor:zoom-in}
+.jr-item-noimg{display:grid;place-items:center;font-size:20px;cursor:default}
+.jr-item-box b{flex:1;min-width:0}
+.jr-item-box b{font-weight:700}
+.jr-item-box span{color:#666;white-space:nowrap}
+
+.jr-total-line{margin-top:10px;font-size:15px;font-weight:800;border-top:1px dashed #ccc;padding-top:8px}
+
+.jr-block.jr-pending{background:#fff0f0;border-right:2px solid #171717}
+@media(max-width:700px){.jr-block.jr-pending{border-right:0;border-bottom:2px solid #171717}}
+.jr-pending .jr-block-title{color:#c22}
+.jr-accept-btn{margin-top:10px;width:100%;border:0;border-radius:8px;padding:10px;background:#1f9d4a;color:#fff;font-weight:800;cursor:pointer;min-height:42px}
+.jr-accept-btn:active{opacity:.8}
+.jr-deliver-btn{margin-top:8px;width:100%;border:0;border-radius:8px;padding:9px;background:#171717;color:#fff;font-weight:800;cursor:pointer;font-size:13px;min-height:40px}
+.jr-deliver-btn:active{opacity:.8}
+.repeat-badge{display:inline-block;background:#1f9d4a;color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:20px;margin-left:8px;vertical-align:middle}
+
+/* ===================================================
+   MOBILE (this is how the app will actually be used)
+=================================================== */
+@media(max-width:800px){
+  .side{
+    position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+    z-index:100;
+    border-top:1px solid #2a2a2a;
+  }
+  .logo{display:none}
+  .nav{flex-direction:row}
+  .nav button{
+    flex:1;flex-direction:column;gap:2px;text-align:center;
+    padding:8px 2px;margin:0 2px;border-radius:10px;font-size:11px;
+  }
+  .nav button .ic{font-size:20px}
+  .nav button .lb{white-space:normal;line-height:1.1}
+
+  .main{
+    margin-left:0;
+    padding:16px 14px calc(90px + env(safe-area-inset-bottom));
+    padding-top:calc(16px + env(safe-area-inset-top));
+  }
+
+  .stats{grid-template-columns:1fr 1fr;gap:12px}
+  .card,.box{padding:16px;border-radius:12px}
+  .card h2{font-size:24px}
+
+  .grid{grid-template-columns:1fr}
+
+  .top{margin-bottom:14px}
+  .top h1{font-size:19px}
+
+  .btn{width:100%}
+  .upload-actions .btn{width:auto}
+
+  table{min-width:560px}
+  .scroll-hint{display:block}
+
+  .setting{padding:14px 0}
+  .setting > div:first-child{flex:1 1 200px}
+}
+
+@media(max-width:380px){
+  .nav button{font-size:10px}
+  .nav button .ic{font-size:18px}
+}
+
+/* ===== FREE GIFT inventory ===== */
+.gift-box{margin-top:20px;border:2px solid #d8ad58}
+.gift-box h2{margin:0 0 4px;font-size:19px}
+.gift-timer-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.gift-timer-row input{width:80px;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+.gift-state{font-weight:800;font-size:12px}
+.gift-state.on{color:#1a7a3c}.gift-state.off{color:#c22}.gift-state.no{color:#555}
+
+/* ===== LIVE GIFT CARDS + EDIT POPUP ===== */
+.gl-box{margin-top:16px}
+.gl-box h2{margin:0 0 4px;font-size:19px}
+.gl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:14px}
+.gl-card{position:relative;background:#fff;border:2px solid #ececec;border-radius:14px;overflow:hidden;cursor:pointer;transition:.15s;display:flex;flex-direction:column}
+.gl-card:hover{border-color:#d8ad58;box-shadow:0 4px 16px #0000001a}
+.gl-card.expired{opacity:.65}
+.gl-card .gl-img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#f1f1f1;display:block}
+.gl-card .gl-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:5px;flex:1}
+.gl-card .gl-title{font-weight:800;font-size:15px}
+.gl-card .gl-min{font-size:13px;color:#555}
+.gl-card .gl-reason{font-size:12px;color:#777;line-height:1.35}
+.gl-card .gl-tap{font-size:11px;color:#9a7a2a;font-weight:700;margin-top:auto}
+.gl-del{position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:#e33;color:#fff;font-size:15px;cursor:pointer;padding:0;box-shadow:0 2px 8px #0004}
+.gl-badge{position:absolute;top:8px;left:8px;background:#fff;border-radius:20px;padding:4px 9px;font-size:11px;box-shadow:0 2px 8px #0003}
+.gl-empty{color:#777;font-size:14px;padding:18px 0}
+#giftModal{position:fixed;inset:0;background:#000a;z-index:1000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top)) 12px calc(16px + env(safe-area-inset-bottom))}
+#giftModal.open{display:flex}
+#giftModal .gm-card{background:#fff;border-radius:16px;width:100%;max-width:520px;padding:20px;margin:auto}
+#giftModal h2{margin:0 0 12px;font-size:20px}
+#giftModal .gm-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+#giftModal .gm-row .btn,#giftModal .gm-row button{flex:1;min-height:46px}
+#giftModal input[type=text],#giftModal input[type=number]{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+#giftModal .gift-timer-row input{width:80px}
+#giftModal .gm-photo{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+#giftModal .gm-photo img{width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #ddd}
+
+/* ===== CART EDIT (admin edits a customer's cart) ===== */
+.ce-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eee;flex-wrap:wrap}
+.ce-row img,.ce-row .ce-noimg{width:54px;height:54px;border-radius:8px;object-fit:cover;background:#f0f0f0;display:flex;align-items:center;justify-content:center;flex:none}
+.ce-info{flex:1 1 150px;min-width:130px}
+.ce-info b{display:block;font-size:14px}
+.ce-qty{display:flex;align-items:center;gap:6px}
+.ce-qty button{width:38px;height:38px;border:0;border-radius:8px;background:#eee;font-size:20px;font-weight:800;cursor:pointer;touch-action:manipulation}
+.ce-qty input{width:56px;text-align:center;padding:9px 4px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+.ce-sub{min-width:80px;text-align:right;font-weight:800}
+.ce-total{display:flex;justify-content:space-between;font-size:18px;font-weight:900;padding:14px 0 4px}
+.ce-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px;max-height:480px;overflow-y:auto}
+.ce-p{border:1px solid #e3e3e3;border-radius:12px;padding:8px;text-align:center;background:#fff}
+.ce-p img{width:100%;height:110px;object-fit:cover;border-radius:8px}
+.ce-p b{display:block;font-size:13px;margin:6px 0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ce-p .btn{min-height:40px;padding:8px 10px;width:100%;font-size:13px;margin-top:6px}
+.ce-warn{background:#fff3cd;color:#533f03;border-radius:8px;padding:8px 12px;font-size:13px;margin-top:8px}
+.ce-dirty{color:#c22;font-weight:800;font-size:13px}
+
+/* ===== uniform text sizes ===== */
+.main{font-size:14px}
+.main h1{font-size:22px}
+.main h2{font-size:18px}
+.small,.jrh-sub,.jrh-right,.jr-card-address,th,.status{font-size:13px}
+.jr-block-title{font-size:12px}
+
+.st-save-row{display:flex;justify-content:flex-end;padding:14px 18px;border-bottom:2px solid #171717;background:#fafafa}
+.st-save{border:0;border-radius:8px;padding:10px 22px;background:#1f9d4a;color:#fff;font-weight:800;cursor:pointer;min-height:42px;font-size:14px}
+.st-save:disabled{background:#cfcfcf;color:#888;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<aside class="side">
+  <div class="logo">💎 Jewellery <span>Row</span></div>
+  <div class="nav">
+    <button class="active" onclick="show('dashboard',this)"><span class="ic">📊</span><span class="lb">Dashboard</span></button>
+    <button onclick="show('inventory',this)"><span class="ic">💍</span><span class="lb">Inventory</span></button>
+    <button onclick="show('gifts',this)"><span class="ic">🎁</span><span class="lb">Free Gifts</span></button>
+    <button onclick="show('customers',this)"><span class="ic">👥</span><span class="lb">Customers</span></button>
+    <button onclick="show('settings',this)"><span class="ic">⚙️</span><span class="lb">Settings</span></button>
+    <button onclick="show('orders',this)"><span class="ic">📦</span><span class="lb">Orders</span></button>
+    <button onclick="show('closedorders',this)"><span class="ic">✅</span><span class="lb">Delivered / RTO</span></button>
+    <button onclick="show('cartedit',this);ceRender()"><span class="ic">🛒</span><span class="lb">Cart Edit</span></button>
+  </div>
+</aside>
+
+<main class="main">
+
+  <section id="dashboard" class="page active">
+    <div class="top"><div><h1>Dashboard</h1></div></div>
+    <div class="stats">
+      <div class="card"><p>Total Orders</p><h2 id="ordersCount">0</h2></div>
+      <div class="card"><p>Total Amount</p><h2 id="totalAmount">₹0</h2></div>
+      <div class="card"><p>Placed Orders</p><h2 id="placedCount">0</h2></div>
+      <div class="card"><p>Inventory Products</p><h2 id="productCount">0</h2></div>
+    </div>
+  </section>
+
+  <section id="inventory" class="page">
+    <div class="top"><h1 id="inventoryFormTitle">Add Inventory</h1></div>
+
+    <div class="box">
+      <label id="drop" class="drop" for="photo">
+        <span class="drop-icon">📷</span>
+        <b>Tap Here To Add Photos</b>
+        
+      </label>
+      <input id="photo" type="file" accept="image/*" multiple style="display:none">
+
+      <div class="upload-actions">
+        <label for="photo" class="btn" style="text-align:center">📁 Choose Photos</label>
+      </div>
+
+      <div id="photoView" class="photo-thumbs"></div>
+
+      <div class="grid" style="margin-top:15px">
+        <div class="field"><label>Title</label><input id="title" placeholder="Jewellery title"></div>
+        <div class="field"><label>Price</label><input id="price" type="number" placeholder="Price"></div>
+      </div>
+
+      <div class="grid" style="margin-top:15px">
+        <div class="field"><label>Rating (0 - 5)</label><input id="rating" type="number" step="0.1" min="0" max="5" placeholder="e.g. 4.5"></div>
+        <div class="field"><label>Number of ratings</label><input id="ratingCount" type="number" min="0" placeholder="e.g. 120"></div>
+      </div>
+
+      <div class="field" style="margin-top:15px">
+        <label>Category</label>
+        <div style="display:flex;gap:8px">
+          <select id="category" style="flex:1"><option value="all">All</option></select>
+          <button type="button" class="btn secondary-btn" style="white-space:nowrap;width:auto" onclick="addCategory()">+ New Category</button>
+        </div>
+        <div id="categoryChips" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:15px;flex-wrap:wrap">
+        <button class="btn" id="saveBtn" onclick="addProduct()">Save Inventory</button>
+        <button class="btn secondary-btn" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel Edit</button>
+      </div>
+    </div>
+
+    <div class="box">
+      <div style="margin-bottom:12px">
+      </div>
+      <table>
+        <thead><tr><th>Photo</th><th>Title</th><th>Category</th><th>Price</th><th>Rating</th><th></th></tr></thead>
+        <tbody id="inventoryRows"></tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <section id="gifts" class="page">
+    <div class="top"><div><h1>🎁 Free Gifts</h1></div></div>
+    <div class="box gift-box">
+      <h2 id="giftFormTitle">Add Free Gift</h2>
+      
+
+      <label class="drop" for="giftPhoto" style="padding:22px 15px">
+        <span class="drop-icon">🎁</span>
+        <b>Tap Here To Add Gift Photo</b>
+        
+      </label>
+      <input id="giftPhoto" type="file" accept="image/*" style="display:none">
+      <div id="giftPhotoView" class="photo-thumbs"></div>
+
+      <div class="grid" style="margin-top:15px">
+        <div class="field"><label>Gift Title</label><input id="giftTitle" placeholder="e.g. Free Earrings"></div>
+        <div class="field"><label>Minimum Cart Value (₹)</label><input id="giftMin" type="number" min="1" placeholder="e.g. 1000"></div>
+      </div>
+
+      <div class="field" style="margin-top:15px">
+        <label>Reason shown to customer (why is it free?)</label>
+        <input id="giftReason" type="text" maxlength="140" placeholder="e.g. Diwali Special - free gift on orders above ₹1000">
+      </div>
+
+      <div class="field" style="margin-top:15px">
+        <label>Offer Timer (how long this gift stays available)</label>
+        <div class="gift-timer-row">
+          <input id="giftHours" type="number" min="0" value="0"><span class="small">hr</span>
+          <input id="giftMinutes" type="number" min="0" max="59" value="0"><span class="small">min</span>
+          <input id="giftSeconds" type="number" min="0" max="59" value="0"><span class="small">sec</span>
+        </div>
+        
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:15px;flex-wrap:wrap">
+        <button class="btn" id="giftSaveBtn" onclick="saveGift()">Save Gift</button>
+        <button class="btn secondary-btn" id="giftCancelBtn" style="display:none" onclick="resetGiftForm()">Cancel Edit</button>
+      </div>
+
+    </div>
+
+    <div class="box gl-box">
+      <h2>🎁 Live Gifts (shown in website banner)</h2>
+      
+      <div id="giftCards" class="gl-grid"></div>
+    </div>
+  </section>
+
+  <section id="customers" class="page">
+    <div class="top"><h1>Customers</h1><div class="small"></div></div>
+    <div id="customerRows" class="jr-cards"></div>
+  </section>
+
+  <section id="settings" class="page">
+    <h1>Order Settings</h1>
+    <div class="box settings">
+      <div class="setting">
+        <div><b>UPI ID (Payment QR)</b></div>
+        <input id="upiId" type="text" placeholder="yourid@bank" style="width:260px;max-width:100%;padding:10px;border:1px solid #ddd;border-radius:8px">
+      </div>
+      <div class="setting">
+        <div><b>Cash on Delivery (COD)</b></div>
+        <button id="codToggle" class="toggle on" onclick="toggleCOD()"></button>
+      </div>
+      <div class="setting">
+        <div><b>Shipping Cost</b></div>
+        <input id="shipping" type="number" value="40" style="width:120px;padding:10px;border:1px solid #ddd;border-radius:8px">
+      </div>
+      <div class="setting">
+        <div><b>Minimum Order Value</b></div>
+        <input id="minimum" type="number" value="300" style="width:120px;padding:10px;border:1px solid #ddd;border-radius:8px">
+      </div>
+      <div class="setting">
+        <div><b>Free Shipping Above</b></div>
+        <input id="freeShipAbove" type="number" value="1000" style="width:120px;padding:10px;border:1px solid #ddd;border-radius:8px">
+      </div>
+      <div class="setting">
+        <div><b>Prepaid Discount (%)</b></div>
+        <input id="prepaidDiscount" type="number" value="5" style="width:120px;padding:10px;border:1px solid #ddd;border-radius:8px">
+      </div>
+      <div class="setting" style="flex-wrap:wrap">
+        <div style="flex:1 1 220px"><b>Discount Timer</b><div id="discountTimerStatus" class="small" style="margin-top:6px;font-weight:700"></div></div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <input id="discHours" type="number" min="0" value="0" placeholder="Hours" style="width:80px;padding:10px;border:1px solid #ddd;border-radius:8px"><span class="small">hr</span>
+          <input id="discMinutes" type="number" min="0" max="59" value="0" placeholder="Min" style="width:80px;padding:10px;border:1px solid #ddd;border-radius:8px"><span class="small">min</span>
+          <input id="discSeconds" type="number" min="0" max="59" value="0" placeholder="Sec" style="width:80px;padding:10px;border:1px solid #ddd;border-radius:8px"><span class="small">sec</span>
+          <button type="button" class="btn" style="width:auto;background:#ffe9e9;color:#b22" onclick="stopDiscountTimer()">Stop / Reset</button>
+        </div>
+      </div>
+      <button class="btn" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </section>
+
+  <section id="orders" class="page">
+    <div class="top"><h1>Orders</h1><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" style="width:auto" onclick="renderAll()">Refresh</button><button class="btn" style="width:auto;background:#ffe9e9;color:#b22" onclick="clearAllOrders()">🗑️ Clear All Orders</button></div></div>
+
+    <h1 style="font-size:18px;margin-bottom:12px">🚚 Accepted / In-Progress Orders</h1>
+    <div id="acceptedOrders" class="jr-cards" style="margin-bottom:26px"></div>
+
+  </section>
+
+  <section id="closedorders" class="page">
+    <div class="top"><h1>Delivered / RTO</h1><div><button class="btn" style="width:auto" onclick="renderAll()">Refresh</button></div></div>
+
+    <div class="stats" style="grid-template-columns:1fr 1fr;margin-bottom:22px">
+      <div class="card"><p>✅ Total Delivered Orders</p><h2 id="deliveredCount">0</h2></div>
+      <div class="card"><p>💰 Delivered Orders Amount</p><h2 id="deliveredAmount">₹0</h2></div>
+    </div>
+
+    <h1 style="font-size:18px;margin-bottom:12px">✅ Delivered / RTO / Rejected / Cancelled Orders</h1>
+    <div id="deliveredOrders" class="jr-cards"></div>
+  </section>
+
+  <section id="cartedit" class="page">
+    <div class="top"><div><h1>🛒 Customer Cart Edit</h1></div></div>
+
+    <div class="box">
+      <div class="field"><label>Customer Mobile Number</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input id="ceSearch" type="tel" inputmode="numeric" maxlength="14" placeholder="10 digit mobile number" style="flex:1 1 200px;padding:13px;border:1px solid #ddd;border-radius:8px;font-size:16px" onkeydown="if(event.key==='Enter')ceOpen()">
+          <button class="btn" id="ceOpenBtn" onclick="ceOpen()">Open Account</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ceBody" style="display:none">
+      <div class="box" style="margin-top:15px">
+        <div id="ceCustInfo"></div>
+      </div>
+
+      <div class="box" style="margin-top:15px">
+        <h2 style="margin:0 0 6px;font-size:18px">🧾 Previous Order</h2>
+        <div id="ceOrderArea"></div>
+      </div>
+
+      <div class="box" style="margin-top:15px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 style="margin:0;font-size:18px">🛒 Customer Cart <span id="ceDirty" class="ce-dirty"></span></h2>
+        <div id="ceTopTotal" style="width:100%;font-size:18px;font-weight:900">Cart Value: ₹0</div>
+          <button class="danger" type="button" onclick="ceClear()">Empty Cart</button>
+        </div>
+        <div id="ceCartRows"></div>
+        <div class="ce-total"><span>Total</span><span id="ceTotal">₹0</span></div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn" id="ceSaveBtn" onclick="ceSave()">💾 Save To Customer Account</button>
+          <button class="btn secondary-btn" onclick="ceReload()">↩ Discard Changes</button>
+        </div>
+      </div>
+
+      <div class="box" style="margin-top:15px">
+        <h2 style="margin:0 0 6px;font-size:18px">➕ Add Product From Inventory</h2>
+        <input id="ceFind" type="text" placeholder="Search product by name…" oninput="cePickRender()" style="width:100%;padding:13px;border:1px solid #ddd;border-radius:8px;font-size:16px">
+        <div id="cePick" class="ce-pick"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="giftModal" onclick="if(event.target===this)closeGiftModal()">
+  <div class="gm-card">
+    <h2>✏️ Edit Free Gift</h2>
+    <div class="gm-photo">
+      <img id="gmImg" src="" alt="">
+      <div>
+        <label class="btn secondary-btn" for="gmPhoto" style="display:inline-block;cursor:pointer">📷 Change Photo</label>
+        <input id="gmPhoto" type="file" accept="image/*" style="display:none">
+      </div>
+    </div>
+    <div class="field"><label>Gift Title</label><input id="gmTitle" type="text"></div>
+    <div class="field" style="margin-top:12px"><label>Minimum Cart Value (₹)</label><input id="gmMin" type="number" min="1"></div>
+    <div class="field" style="margin-top:12px"><label>Reason shown to customer</label><input id="gmReason" type="text" maxlength="140"></div>
+    <div class="field" style="margin-top:12px">
+      <label>Timer (time left)</label>
+      <div class="gift-timer-row">
+        <input id="gmH" type="number" min="0" value="0"><span class="small">hr</span>
+        <input id="gmM" type="number" min="0" max="59" value="0"><span class="small">min</span>
+        <input id="gmS" type="number" min="0" max="59" value="0"><span class="small">sec</span>
+      </div>
+      <div class="small" id="gmTimerHint"></div>
+    </div>
+    <div class="gm-row">
+      <button class="btn" id="gmSave" type="button" onclick="saveGiftEdit()">Save Changes</button>
+      <button class="btn secondary-btn" type="button" onclick="closeGiftModal()">Cancel</button>
+      <button class="danger" type="button" onclick="deleteGift(editingGiftId);closeGiftModal()">🗑 Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyDQm9D503Y3-twvJjLhLBacU8sH8DBjYgk",authDomain:"jewellery-a32ee.firebaseapp.com",databaseURL:"https://jewellery-a32ee-default-rtdb.firebaseio.com",projectId:"jewellery-a32ee",storageBucket:"jewellery-a32ee.firebasestorage.app",messagingSenderId:"441508659343",appId:"1:441508659343:web:786e05e551f97eee7f30fa"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+</script>
+<script src="fast.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
